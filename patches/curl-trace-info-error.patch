@@ -1,32 +1,34 @@
-diff -Nru curl-7.15.4/include/curl/curl.h curl-7.15.4-rob/include/curl/curl.h
---- curl-7.15.4/include/curl/curl.h	2006-04-27 00:06:51.000000000 +0300
-+++ curl-7.15.4-rob/include/curl/curl.h	2006-07-06 21:37:12.000000000 +0300
-@@ -220,6 +220,7 @@
+diff --git a/include/curl/curl.h b/include/curl/curl.h
+index ea6fcb672..34f9e42e8 100644
+--- a/include/curl/curl.h
++++ b/include/curl/curl.h
+@@ -482,6 +482,7 @@ typedef enum {
    CURLINFO_DATA_OUT,     /* 4 */
    CURLINFO_SSL_DATA_IN,  /* 5 */
    CURLINFO_SSL_DATA_OUT, /* 6 */
-+  CURLINFO_ERROR,             /* 7 */
++  CURLINFO_ERROR,        /* 7 */
    CURLINFO_END
  } curl_infotype;
  
-diff -Nru curl-7.15.4/lib/sendf.c curl-7.15.4-rob/lib/sendf.c
---- curl-7.15.4/lib/sendf.c	2006-05-05 13:24:27.000000000 +0300
-+++ curl-7.15.4-rob/lib/sendf.c	2006-07-06 21:45:13.000000000 +0300
-@@ -258,7 +258,8 @@
-       data->state.buffer[len] = '\n';
-       data->state.buffer[++len] = '\0';
+diff --git a/lib/curl_log.c b/lib/curl_log.c
+index 782c35a63..fd146e5cb 100644
+--- a/lib/curl_log.c
++++ b/lib/curl_log.c
+@@ -70,6 +70,7 @@ void Curl_debug(struct Curl_easy *data, curl_infotype type,
+       case CURLINFO_TEXT:
+       case CURLINFO_HEADER_OUT:
+       case CURLINFO_HEADER_IN:
++      case CURLINFO_ERROR:
+         fwrite(s_infotype[type], 2, 1, data->set.err);
+         fwrite(ptr, size, 1, data->set.err);
+         break;
+@@ -100,7 +101,8 @@ void Curl_failf(struct Curl_easy *data, const char *fmt, ...)
      }
--    Curl_debug(data, CURLINFO_TEXT, data->state.buffer, len, NULL);
-+    /*Curl_debug(data, CURLINFO_TEXT, data->state.buffer, len, NULL); */
-+    Curl_debug(data, CURLINFO_ERROR, data->state.buffer, len, NULL);
+     error[len++] = '\n';
+     error[len] = '\0';
+-    Curl_debug(data, CURLINFO_TEXT, error, len);
++    /*Curl_debug(data, CURLINFO_TEXT, error, len);*/
++    Curl_debug(data, CURLINFO_ERROR, error, len);
+     va_end(ap);
    }
- 
-   va_end(ap);
-@@ -517,6 +518,7 @@
-   case CURLINFO_TEXT:
-   case CURLINFO_HEADER_OUT:
-   case CURLINFO_HEADER_IN:
-+  case CURLINFO_ERROR:
-     fwrite(s_infotype[type], 2, 1, data->set.err);
-     fwrite(ptr, size, 1, data->set.err);
-     break;
+ }

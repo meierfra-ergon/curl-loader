@@ -8,7 +8,7 @@ BUILD=$(shell pwd)/build
 #
 # Building of DNS asynch resolving c-ares library.
 
-CARES_VER:=1.7.5#
+CARES_VER:=1.14.0
 CARES_BUILD=$(BUILD)/c-ares
 CARES_MAKE_DIR=$(CARES_BUILD)/c-ares-$(CARES_VER)
 
@@ -16,17 +16,17 @@ LIBEVENT_VER:=1.4.14b
 LIBEVENT_BUILD=$(BUILD)/libevent
 LIBEVENT_MAKE_DIR=$(LIBEVENT_BUILD)/libevent-$(LIBEVENT_VER)-stable
 
-NGHTTP2_VER=1.9.2
+NGHTTP2_VER=1.55.1
 NGHTTP2_BUILD=$(BUILD)/nghttp2
 NGHTTP2_MAKE_DIR=$(NGHTTP2_BUILD)/nghttp2-$(NGHTTP2_VER)
 NGHTTP2_INST_DIR=$(NGHTTP2_BUILD)/nghttp2-$(NGHTTP2_VER)-inst
 
-OPENSSL_VER=1.0.2g
+OPENSSL_VER=3.0.9
 OPENSSL_BUILD=$(BUILD)/openssl
 OPENSSL_MAKE_DIR=$(OPENSSL_BUILD)/openssl-$(OPENSSL_VER)
 OPENSSL_INST_DIR=$(OPENSSL_BUILD)/openssl-$(OPENSSL_VER)-inst
 
-CURL_VER:=7.49.0
+CURL_VER:=8.2.1
 CURL_BUILD=$(BUILD)/curl
 CURL_MAKE_DIR=$(CURL_BUILD)/curl-$(CURL_VER)
 CURL_INST_DIR=$(CURL_BUILD)/curl-$(CURL_VER)-inst
@@ -180,7 +180,7 @@ $(LIBNGHTTP2):
 $(LIBSSL):
 	mkdir -p $(OPENSSL_BUILD)
 	cd $(OPENSSL_BUILD); tar zxf ../../packages/openssl-$(OPENSSL_VER).tar.gz;
-	cd $(OPENSSL_MAKE_DIR); ./config threads no-shared no-zlib --openssldir=/ --install_prefix=$(OPENSSL_INST_DIR);
+	cd $(OPENSSL_MAKE_DIR); ./Configure threads no-shared no-zlib -DOPENSSL_TLS_SECURITY_LEVEL=0 --prefix=$(OPENSSL_INST_DIR);
 	make -C $(OPENSSL_MAKE_DIR); make -C $(OPENSSL_MAKE_DIR) install
 	mkdir -p ./inc; mkdir -p ./lib
 	cp -a $(OPENSSL_INST_DIR)/include/openssl ./inc/
@@ -193,11 +193,12 @@ $(LIBCURL): $(LIBCARES) $(LIBNGHTTP2) $(LIBSSL)
 	echo $(CURL_MAKE_DIR)
 	cd $(CURL_MAKE_DIR); patch -p1 < $(BASE)/patches/curl-trace-info-error.patch
 	cd $(CURL_MAKE_DIR); ./configure --prefix=$(CURL_INST_DIR) \
-	--without-libidn \
-	--without-libmetalink \
+	--without-libidn2 \
 	--without-libpsl \
 	--without-librtmp \
 	--without-libssh2 \
+	--without-brotli \
+	--without-zstd \
 	--enable-http \
 	--enable-ftp \
 	--enable-file \

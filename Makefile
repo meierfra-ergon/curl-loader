@@ -8,11 +8,11 @@ BUILD=$(shell pwd)/build
 #
 # Building of DNS asynch resolving c-ares library.
 
-CARES_VER:=1.14.0
+CARES_VER:=1.19.1
 CARES_BUILD=$(BUILD)/c-ares
 CARES_MAKE_DIR=$(CARES_BUILD)/c-ares-$(CARES_VER)
 
-LIBEVENT_VER:=1.4.14b
+LIBEVENT_VER:=2.1.12
 LIBEVENT_BUILD=$(BUILD)/libevent
 LIBEVENT_MAKE_DIR=$(LIBEVENT_BUILD)/libevent-$(LIBEVENT_VER)-stable
 
@@ -143,22 +143,22 @@ install:
 $(LIBEVENT):
 	mkdir -p $(LIBEVENT_BUILD)
 	cd $(LIBEVENT_BUILD); tar zxfv ../../packages/libevent-$(LIBEVENT_VER)-stable.tar.gz;
-	cd $(LIBEVENT_MAKE_DIR); patch -p1 < ../../../patches/libevent-nevent.patch; ./configure --prefix $(LIBEVENT_BUILD) \
-		CFLAGS="$(PROF_FLAG) $(DEBUG_FLAGS) $(OPT_FLAGS)"
+	#cd $(LIBEVENT_MAKE_DIR); patch -p1 < ../../../patches/libevent-nevent.patch; ./configure --prefix $(LIBEVENT_BUILD) CFLAGS="$(PROF_FLAG) $(DEBUG_FLAGS) $(OPT_FLAGS)"
+	cd $(LIBEVENT_MAKE_DIR); ./configure --prefix $(LIBEVENT_BUILD) CFLAGS="$(PROF_FLAG) $(DEBUG_FLAGS) $(OPT_FLAGS)"
 	make -C $(LIBEVENT_MAKE_DIR); make -C $(LIBEVENT_MAKE_DIR) install
 	mkdir -p ./inc; mkdir -p ./lib
-	cp -pf $(LIBEVENT_BUILD)/include/*.h ./inc
+	cp -rpf $(LIBEVENT_BUILD)/include/* ./inc
 	cp -pf $(LIBEVENT_BUILD)/lib/libevent.a ./lib
 
 $(LIBCARES):
 	mkdir -p $(CARES_BUILD)
 	cd $(CARES_BUILD); tar zxf ../../packages/c-ares-$(CARES_VER).tar.gz;
-	cd $(CARES_MAKE_DIR); ./configure --prefix $(CARES_MAKE_DIR) \
+	cd $(CARES_MAKE_DIR); ./configure --prefix $(CARES_BUILD) \
 		CFLAGS="$(PROF_FLAG) $(DEBUG_FLAGS) $(OPT_FLAGS)"
 	make -C $(CARES_MAKE_DIR); make -C $(CARES_MAKE_DIR) install
 	mkdir -p ./inc; mkdir -p ./lib
-	cp -pf $(CARES_MAKE_DIR)/include/*.h ./inc
-	cp -pf $(CARES_MAKE_DIR)/lib/libcares.*a ./lib
+	cp -pf $(CARES_BUILD)/include/*.h ./inc
+	cp -pf $(CARES_BUILD)/lib/libcares.*a ./lib
 
 
 $(LIBNGHTTP2):
@@ -217,7 +217,7 @@ $(LIBCURL): $(LIBCARES) $(LIBNGHTTP2) $(LIBSSL)
 	--enable-thread \
 	--with-random=/dev/urandom \
 	--enable-shared=no \
-	--enable-ares=$(CARES_MAKE_DIR) \
+	--enable-ares=$(CARES_BUILD) \
 	--with-ssl=$(OPENSSL_INST_DIR) \
 	--with-nghttp2=$(NGHTTP2_INST_DIR) \
 		CFLAGS="$(PROF_FLAG) $(DEBUG_FLAGS) $(OPT_FLAGS) -DCURL_MAX_WRITE_SIZE=4096";

@@ -602,6 +602,10 @@ int setup_curl_handle_init (client_context*const cctx, url_context* url)
       curl_easy_setopt (handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
       curl_easy_setopt (handle, CURLOPT_PIPEWAIT, 1L);
     }
+  else
+    {
+      curl_easy_setopt (handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+    }
 
   /* 
      If DNS resolving is necesary, global DNS cache is enough,

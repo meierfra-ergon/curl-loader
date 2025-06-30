@@ -73,7 +73,7 @@ int still_running;
 static void event_cb_hyper (int fd, short kind, void *userp);
 static void update_timeout_hyper (batch_context *bctx);
 
-static int on_exit_hyper (batch_context* bctx);
+static void on_exit_hyper (batch_context* bctx);
 
 
 //static struct event timer_event;
@@ -395,13 +395,14 @@ static void next_load_cb_hyper (int fd, short kind, void *userp)
      3. Runs multi_socket_all () to open sockets, call event_cb_hyper  and add 
          their the sockets to the epoll.
   */
-  mperform_hyper (bctx, &st);
+  if (mperform_hyper (bctx, &st) == 0)
+    {
+      struct timeval tv;
+      timerclear(&tv);
+      tv.tv_usec = TIMER_NEXT_LOAD;
 
-  struct timeval tv;
-  timerclear(&tv);
-  tv.tv_usec = TIMER_NEXT_LOAD;
-  
-  event_add (bctx->timer_next_load_event, &tv);  
+      event_add (bctx->timer_next_load_event, &tv);
+    }
 }
 
 /****************************************************************************************
@@ -515,14 +516,17 @@ int user_activity_hyper (client_context* cctx_array)
   return 0;
 }
 
-static int on_exit_hyper (batch_context* bctx)
+static void on_exit_hyper (batch_context* bctx)
 {
     //fprintf (stderr, "%s - entered.\n", __func__);
 
-    still_running =0;
+  still_running =0;
 
-  dump_final_statistics (bctx->cctx_array);
-  screen_release ();
+  if (is_batch_group_leader(bctx))
+    {
+      dump_final_statistics (bctx->cctx_array);
+      screen_release ();
+    }
 
   /* 
      ======= Release resources =========================
@@ -536,8 +540,6 @@ static int on_exit_hyper (batch_context* bctx)
       free (bctx->waiting_queue);
       bctx->waiting_queue = 0;
     }
-
-  exit (0);
 }
 
 
@@ -566,7 +568,7 @@ static int mget_url_hyper (batch_context* bctx)
   //event_dispatch();
   event_base_dispatch((struct event_base *) bctx->eb);
 
-  fprintf (stderr, "%s - out of event_dispatch () loop.\n", __func__);
+  // fprintf (stderr, "%s - out of event_dispatch () loop.\n", __func__);
 
   return 0;
 }
@@ -582,7 +584,7 @@ static int mget_url_hyper (batch_context* bctx)
  * Input -       *bctx - pointer to the batch of contexts;
  *               *still_running - pointer to counter of still running clients (CURL handles)
  *               
- * Return Code/Output - On Success - 0, on Error -1
+ * Return Code/Output - On Success - 0, on Error -1, On Finish 99
  ****************************************************************************************/
 static int mperform_hyper (batch_context* bctx, int* still_running)
 {
@@ -599,7 +601,7 @@ static int mperform_hyper (batch_context* bctx, int* still_running)
   if (pending_active_and_waiting_clients_num (bctx) == 0 &&
       bctx->do_client_num_gradual_increase == 0)
   {
-      return on_exit_hyper (bctx);
+      return 99;
   }
     
   now_time = get_tick_count ();

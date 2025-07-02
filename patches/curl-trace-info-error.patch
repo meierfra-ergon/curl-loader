@@ -1,8 +1,8 @@
 diff --git a/include/curl/curl.h b/include/curl/curl.h
-index ea6fcb672..34f9e42e8 100644
+index fb225c790..39cfb1919 100644
 --- a/include/curl/curl.h
 +++ b/include/curl/curl.h
-@@ -482,6 +482,7 @@ typedef enum {
+@@ -485,6 +485,7 @@ typedef enum {
    CURLINFO_DATA_OUT,     /* 4 */
    CURLINFO_SSL_DATA_IN,  /* 5 */
    CURLINFO_SSL_DATA_OUT, /* 6 */
@@ -10,11 +10,11 @@ index ea6fcb672..34f9e42e8 100644
    CURLINFO_END
  } curl_infotype;
  
-diff --git a/lib/curl_log.c b/lib/curl_log.c
-index 782c35a63..fd146e5cb 100644
---- a/lib/curl_log.c
-+++ b/lib/curl_log.c
-@@ -70,6 +70,7 @@ void Curl_debug(struct Curl_easy *data, curl_infotype type,
+diff --git a/lib/curl_trc.c b/lib/curl_trc.c
+index 566cdc533..4d1047846 100644
+--- a/lib/curl_trc.c
++++ b/lib/curl_trc.c
+@@ -70,6 +70,7 @@ static void trc_write(struct Curl_easy *data, curl_infotype type,
        case CURLINFO_TEXT:
        case CURLINFO_HEADER_OUT:
        case CURLINFO_HEADER_IN:
@@ -22,13 +22,13 @@ index 782c35a63..fd146e5cb 100644
          fwrite(s_infotype[type], 2, 1, data->set.err);
          fwrite(ptr, size, 1, data->set.err);
          break;
-@@ -100,7 +101,8 @@ void Curl_failf(struct Curl_easy *data, const char *fmt, ...)
+@@ -195,7 +196,8 @@ void Curl_failf(struct Curl_easy *data, const char *fmt, ...)
      }
      error[len++] = '\n';
      error[len] = '\0';
--    Curl_debug(data, CURLINFO_TEXT, error, len);
-+    /*Curl_debug(data, CURLINFO_TEXT, error, len);*/
-+    Curl_debug(data, CURLINFO_ERROR, error, len);
+-    trc_write(data, CURLINFO_TEXT, error, len);
++    /*trc_write(data, CURLINFO_TEXT, error, len);*/
++    trc_write(data, CURLINFO_ERROR, error, len);
      va_end(ap);
    }
  }

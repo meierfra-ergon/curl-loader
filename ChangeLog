@@ -1,3 +1,9 @@
+version 0.56-mef20250630, develop, https://github.com/meierfra-ergon/curl-loader
+
+* Fixed some race conditions
+
+* Updated libraries (curl, nghttp2, openssl, c-ares)
+
 version 0.56-mef20231129, develop, https://github.com/meierfra-ergon/curl-loader
 
 * Fix do not implicitly use HTTP2

@@ -96,7 +96,7 @@ getch(void)
 #endif
 
   ntty.c_cc[VMIN]  = 0;      /* non-block for input  */
-  ntty.c_cc[VTIME] = 1;      /* with timer*/
+  ntty.c_cc[VTIME] = 0;      /* with timer*/
 
 #if 0
 /*

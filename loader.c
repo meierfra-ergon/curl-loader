@@ -54,7 +54,6 @@
 #include "client.h"
 #include "loader.h"
 #include "conf.h"
-#include "ssl_thr_lock.h"
 #include "screen.h"
 #include "cl_alloc.h"
 
@@ -144,12 +143,12 @@ main (int argc, char *argv [])
       return -1;
     }
 
-  if (geteuid())
-    {
-      fprintf (stderr, 
-               "%s - error: lacking root priviledges to run this program.\n", __func__);
-      return -1;
-    }
+//  if (geteuid())
+//    {
+//      fprintf (stderr,
+//               "%s - error: lacking root priviledges to run this program.\n", __func__);
+//      return -1;
+//    }
   
    memset(bc_arr, 0, sizeof(bc_arr));
 
@@ -208,13 +207,6 @@ main (int argc, char *argv [])
       fprintf (stderr, "\n%s - RUNNING LOAD, STARTING THREADS\n\n", __func__);
       sleep (1);
       
-      /* Init openssl mutexes and pass two callbacks to openssl. */
-      if (thread_openssl_setup () == -1)
-        {
-          fprintf (stderr, "%s - error: thread_setup () - failed.\n", __func__);
-          return -1;
-        }
-
       create_thr_subbatches (bc_arr, threads_subbatches_num); 
       
       /* 
@@ -245,8 +237,6 @@ main (int argc, char *argv [])
           error = pthread_join (tid[i], NULL) ;
           fprintf(stderr, "%s - note: Thread %d terminated normally\n", __func__, i) ;
         }
-
-      thread_openssl_cleanup ();
     }
    
   return 0;
@@ -1618,12 +1608,14 @@ static void free_batch_data_allocations (batch_context* bctx)
   if (bctx->url_ctx_array)
   {
       /* Free all URL objects */
-      
-      for (i = 0 ; i < bctx->urls_num; i++)
+      if (is_batch_group_leader(bctx))
       {
-          url_context* url = &bctx->url_ctx_array[i];
-          
-          free_url (url, bctx->client_num_max);
+          for (i = 0 ; i < bctx->urls_num; i++)
+          {
+              url_context* url = &bctx->url_ctx_array[i];
+
+              free_url (url, bctx->client_num_max);
+          }
       }
       
       /* Free URL context array */
@@ -2151,12 +2143,6 @@ static int create_thr_subbatches (batch_context *bc_arr, int subbatches_num)
               return -1;
           }
           memcpy (bc_arr[i].url_ctx_array, master.url_ctx_array, bc_arr[i].urls_num * sizeof (url_context));
-          
-          int j;
-          for (j = 0; j < bc_arr[i].urls_num; j++)
-          {
-              bc_arr[i].url_ctx_array[j].url_str = strdup(master.url_ctx_array[j].url_str);
-          }
       }
 
       bc_arr[i].url_index = master.url_index;

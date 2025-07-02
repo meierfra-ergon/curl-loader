@@ -858,7 +858,10 @@ static int handle_screen_input_timer (timer_node* timer_node,
   (void) timer_node;
   (void) ulong_param;
 
-  screen_test_keyboard_input (bctx);
+  if (is_batch_group_leader(bctx))
+    {
+      screen_test_keyboard_input (bctx);
+    }
 
   //fprintf (stderr, "%s - runs.\n", __func__);
   return 0;

@@ -8,7 +8,7 @@ BUILD=$(shell pwd)/build
 #
 # Building of DNS asynch resolving c-ares library.
 
-CARES_VER:=1.19.1
+CARES_VER:=1.34.5
 CARES_BUILD=$(BUILD)/c-ares
 CARES_MAKE_DIR=$(CARES_BUILD)/c-ares-$(CARES_VER)
 
@@ -16,17 +16,17 @@ LIBEVENT_VER:=2.1.12
 LIBEVENT_BUILD=$(BUILD)/libevent
 LIBEVENT_MAKE_DIR=$(LIBEVENT_BUILD)/libevent-$(LIBEVENT_VER)-stable
 
-NGHTTP2_VER=1.55.1
+NGHTTP2_VER=1.66.0
 NGHTTP2_BUILD=$(BUILD)/nghttp2
 NGHTTP2_MAKE_DIR=$(NGHTTP2_BUILD)/nghttp2-$(NGHTTP2_VER)
 NGHTTP2_INST_DIR=$(NGHTTP2_BUILD)/nghttp2-$(NGHTTP2_VER)-inst
 
-OPENSSL_VER=3.0.9
+OPENSSL_VER=3.5.0
 OPENSSL_BUILD=$(BUILD)/openssl
 OPENSSL_MAKE_DIR=$(OPENSSL_BUILD)/openssl-$(OPENSSL_VER)
 OPENSSL_INST_DIR=$(OPENSSL_BUILD)/openssl-$(OPENSSL_VER)-inst
 
-CURL_VER:=8.2.1
+CURL_VER:=8.14.1
 CURL_BUILD=$(BUILD)/curl
 CURL_MAKE_DIR=$(CURL_BUILD)/curl-$(CURL_VER)
 CURL_INST_DIR=$(CURL_BUILD)/curl-$(CURL_VER)-inst
@@ -54,7 +54,7 @@ profile ?= 0
 
 #Debug flags
 ifeq ($(debug),1)
-DEBUG_FLAGS+= -g
+DEBUG_FLAGS+= -ggdb
 else
 DEBUG_FLAGS=
 ifeq ($(profile),0)
@@ -180,7 +180,7 @@ $(LIBNGHTTP2):
 $(LIBSSL):
 	mkdir -p $(OPENSSL_BUILD)
 	cd $(OPENSSL_BUILD); tar zxf ../../packages/openssl-$(OPENSSL_VER).tar.gz;
-	cd $(OPENSSL_MAKE_DIR); ./Configure threads no-shared no-zlib -DOPENSSL_TLS_SECURITY_LEVEL=0 --prefix=$(OPENSSL_INST_DIR);
+	cd $(OPENSSL_MAKE_DIR); ./Configure $(DEBUG_FLAGS) threads no-shared no-zlib -DOPENSSL_TLS_SECURITY_LEVEL=0 --prefix=$(OPENSSL_INST_DIR);
 	make -C $(OPENSSL_MAKE_DIR); make -C $(OPENSSL_MAKE_DIR) install
 	mkdir -p ./inc; mkdir -p ./lib
 	cp -a $(OPENSSL_INST_DIR)/include/openssl ./inc/
